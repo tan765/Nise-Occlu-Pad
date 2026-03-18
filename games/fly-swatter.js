@@ -12,7 +12,7 @@ const splats = [];
 let score = 0;
 
 // タイマー
-const GAME_TIME = 60;
+const GAME_TIME = 90;
 let gameTimer = GAME_TIME;
 let gameStarted = false;
 let showingResults = false;

@@ -11,7 +11,7 @@ const balloons = [];
 const MAX_BALLOONS = 7;
 
 // タイマー
-const GAME_TIME = 60;
+const GAME_TIME = 90;
 let gameTimer = GAME_TIME;
 let gameStarted = false;
 let gameScore = 0;
