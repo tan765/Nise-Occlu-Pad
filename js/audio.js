@@ -32,6 +32,7 @@ class SoundManager {
     this._createSplash();
     this._createHappy();
     this._createBounce();
+    this._createSwat();
     this._createBgm();
   }
 
@@ -111,6 +112,22 @@ class SoundManager {
       data[i] = env * Math.sin(t * freq * Math.PI * 2) * 0.3;
     }
     this.buffers.bounce = buf;
+  }
+
+  /** バシッ！（ハエたたき） */
+  _createSwat() {
+    const sr = this.ctx.sampleRate;
+    const len = sr * 0.15;
+    const buf = this.ctx.createBuffer(1, len, sr);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      const t = i / sr;
+      const env = Math.exp(-t * 25);
+      // ノイズ + 低周波衝撃音
+      data[i] = env * (Math.random() * 2 - 1) * 0.4 +
+                env * Math.sin(t * 200 * Math.PI * 2) * 0.3;
+    }
+    this.buffers.swat = buf;
   }
 
   /** 穏やかな BGM ループ */
