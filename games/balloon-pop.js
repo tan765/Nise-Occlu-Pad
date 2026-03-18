@@ -10,6 +10,14 @@ let lastTime = 0;
 const balloons = [];
 const MAX_BALLOONS = 7;
 
+// タイマー
+const GAME_TIME = 60;
+let gameTimer = GAME_TIME;
+let gameStarted = false;
+let gameScore = 0;
+let showingResults = false;
+const replayBtn = { x: 0, y: 0, w: 200, h: 56 };
+
 const COLORS = [
   { h: 0, s: 80, l: 60 },    // 赤
   { h: 30, s: 90, l: 60 },   // オレンジ
@@ -30,19 +38,20 @@ onResize(canvas, () => resize());
 
 function createBalloon() {
   const color = COLORS[randInt(0, COLORS.length - 1)];
-  const radius = rand(40, 60);
+  // 20% の確率で速くて小さい風船
+  const isFast = Math.random() < 0.2;
+  const radius = isFast ? rand(30, 42) : rand(40, 60);
+  const speed = isFast ? rand(1.5, 2.2) : rand(0.5, 1.8);
   return {
     x: rand(radius, w - radius),
     y: h + radius + rand(0, 100),
     radius: radius,
     color: color,
-    speed: rand(0.4, 0.9),
+    speed: speed,
     wobblePhase: Math.random() * Math.PI * 2,
     wobbleSpeed: rand(1, 2.5),
     wobbleAmp: rand(15, 30),
     popped: false,
-    popTimer: 0,
-    popScale: 1,
   };
 }
 
@@ -58,7 +67,6 @@ function drawBalloon(b) {
 
   ctx.save();
   ctx.translate(b.x, b.y);
-  ctx.scale(b.popScale, b.popScale);
 
   // 本体
   const grad = ctx.createRadialGradient(
@@ -91,6 +99,7 @@ function drawBalloon(b) {
 
 function popBalloon(b) {
   b.popped = true;
+  gameScore++;
   particles.emit(b.x, b.y, 20, {
     speedMin: 60, speedMax: 180,
     sizeMin: 4, sizeMax: 10,
@@ -110,6 +119,19 @@ function popBalloon(b) {
   soundManager.play('pop', 0.7);
 }
 
+function resetGame() {
+  gameTimer = GAME_TIME;
+  gameStarted = false;
+  gameScore = 0;
+  showingResults = false;
+  balloons.length = 0;
+  for (let i = 0; i < MAX_BALLOONS; i++) {
+    const b = createBalloon();
+    b.y = rand(h * 0.2, h * 0.9);
+    balloons.push(b);
+  }
+}
+
 // タッチ
 canvas.addEventListener('pointerdown', (e) => {
   e.preventDefault();
@@ -121,10 +143,21 @@ canvas.addEventListener('pointerdown', (e) => {
   }
   const pos = getPointerPos(canvas, e);
 
+  // リプレイ判定
+  if (showingResults) {
+    if (pos.x >= replayBtn.x && pos.x <= replayBtn.x + replayBtn.w &&
+        pos.y >= replayBtn.y && pos.y <= replayBtn.y + replayBtn.h) {
+      resetGame();
+    }
+    return;
+  }
+
+  // ゲーム開始
+  if (!gameStarted) gameStarted = true;
+
   for (let i = balloons.length - 1; i >= 0; i--) {
     const b = balloons[i];
     if (b.popped) continue;
-    // 判定を大きめに（3歳児向け）
     if (dist(pos.x, pos.y, b.x, b.y) < b.radius * 1.3) {
       popBalloon(b);
       break;
@@ -132,9 +165,71 @@ canvas.addEventListener('pointerdown', (e) => {
   }
 });
 
+function drawTimer() {
+  if (!gameStarted || showingResults) return;
+  const secs = Math.ceil(gameTimer);
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.beginPath();
+  ctx.roundRect(w / 2 - 40, 12, 80, 32, 16);
+  ctx.fill();
+  ctx.fillStyle = secs <= 10 ? '#e55' : '#fff';
+  ctx.font = 'bold 20px "Hiragino Sans", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`${secs}`, w / 2, 28);
+  ctx.restore();
+}
+
+function drawResults() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.save();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 38px "Hiragino Sans", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('おわり！', w / 2, h * 0.3);
+
+  ctx.font = 'bold 60px "Hiragino Sans", sans-serif';
+  ctx.fillStyle = '#FFD700';
+  ctx.fillText(`${gameScore}`, w / 2, h * 0.44);
+
+  ctx.font = 'bold 22px "Hiragino Sans", sans-serif';
+  ctx.fillStyle = '#fff';
+  ctx.fillText('こ われたよ！', w / 2, h * 0.54);
+
+  // もういっかいボタン
+  replayBtn.x = w / 2 - replayBtn.w / 2;
+  replayBtn.y = h * 0.66;
+  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  ctx.beginPath();
+  ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28);
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 22px "Hiragino Sans", sans-serif';
+  ctx.fillText('もういっかい', w / 2, replayBtn.y + replayBtn.h / 2);
+  ctx.restore();
+}
+
 function animate(time) {
   const dt = Math.min((time - lastTime) / 1000, 0.05);
   lastTime = time;
+
+  // タイマー更新
+  if (gameStarted && !showingResults) {
+    gameTimer -= dt;
+    if (gameTimer <= 0) {
+      gameTimer = 0;
+      showingResults = true;
+    }
+  }
 
   // 背景（空のグラデーション）
   const grad = ctx.createLinearGradient(0, 0, 0, h);
@@ -149,33 +244,40 @@ function animate(time) {
   drawCloud(cloudX, h * 0.15, 60);
   drawCloud(((cloudX + w * 0.6) % (w + 200)) - 100, h * 0.25, 45);
 
-  // 風船更新
-  for (let i = balloons.length - 1; i >= 0; i--) {
-    const b = balloons[i];
-    if (b.popped) {
-      balloons.splice(i, 1);
-      continue;
+  if (!showingResults) {
+    // 風船更新
+    for (let i = balloons.length - 1; i >= 0; i--) {
+      const b = balloons[i];
+      if (b.popped) {
+        balloons.splice(i, 1);
+        continue;
+      }
+
+      b.y -= b.speed * 60 * dt;
+      b.wobblePhase += b.wobbleSpeed * dt;
+      b.x += Math.sin(b.wobblePhase) * b.wobbleAmp * dt;
+
+      if (b.y < -b.radius * 2) {
+        balloons.splice(i, 1);
+      }
+
+      drawBalloon(b);
     }
 
-    b.y -= b.speed * 60 * dt;
-    b.wobblePhase += b.wobbleSpeed * dt;
-    b.x += Math.sin(b.wobblePhase) * b.wobbleAmp * dt;
-
-    // 画面上端を超えたら静かにリサイクル
-    if (b.y < -b.radius * 2) {
-      balloons.splice(i, 1);
+    // 風船補充
+    while (balloons.length < MAX_BALLOONS) {
+      balloons.push(createBalloon());
     }
-
-    drawBalloon(b);
-  }
-
-  // 風船補充
-  while (balloons.length < MAX_BALLOONS) {
-    balloons.push(createBalloon());
   }
 
   particles.update(dt);
   particles.draw(ctx);
+
+  drawTimer();
+
+  if (showingResults) {
+    drawResults();
+  }
 
   requestAnimationFrame(animate);
 }

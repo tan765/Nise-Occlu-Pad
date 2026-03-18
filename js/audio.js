@@ -33,6 +33,12 @@ class SoundManager {
     this._createHappy();
     this._createBounce();
     this._createSwat();
+    this._createWhack();
+    this._createCatch();
+    this._createNote('note1', 262);
+    this._createNote('note2', 330);
+    this._createNote('note3', 392);
+    this._createNote('note4', 523);
     this._createBgm();
   }
 
@@ -128,6 +134,57 @@ class SoundManager {
                 env * Math.sin(t * 200 * Math.PI * 2) * 0.3;
     }
     this.buffers.swat = buf;
+  }
+
+  /** ポコン！（もぐらたたき） */
+  _createWhack() {
+    const sr = this.ctx.sampleRate;
+    const len = sr * 0.2;
+    const buf = this.ctx.createBuffer(1, len, sr);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      const t = i / sr;
+      const env = Math.exp(-t * 20);
+      const freq = 400 * Math.exp(-t * 8);
+      data[i] = env * Math.sin(t * freq * Math.PI * 2) * 0.35 +
+                env * (Math.random() * 2 - 1) * 0.15;
+    }
+    this.buffers.whack = buf;
+  }
+
+  /** チャリン！（フルーツキャッチ） */
+  _createCatch() {
+    const sr = this.ctx.sampleRate;
+    const len = sr * 0.25;
+    const buf = this.ctx.createBuffer(1, len, sr);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      const t = i / sr;
+      const env = Math.exp(-t * 10);
+      data[i] = env * (
+        Math.sin(t * 1200 * Math.PI * 2) * 0.2 +
+        Math.sin(t * 1800 * Math.PI * 2) * 0.15 +
+        Math.sin(t * 2400 * Math.PI * 2) * 0.1
+      );
+    }
+    this.buffers.catch = buf;
+  }
+
+  /** ボタン音（ひかるボタン用、周波数指定） */
+  _createNote(name, freq) {
+    const sr = this.ctx.sampleRate;
+    const len = sr * 0.35;
+    const buf = this.ctx.createBuffer(1, len, sr);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      const t = i / sr;
+      const env = Math.exp(-t * 6);
+      data[i] = env * (
+        Math.sin(t * freq * Math.PI * 2) * 0.25 +
+        Math.sin(t * freq * 2 * Math.PI * 2) * 0.08
+      );
+    }
+    this.buffers[name] = buf;
   }
 
   /** 穏やかな BGM ループ */

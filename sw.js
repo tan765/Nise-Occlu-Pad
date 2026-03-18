@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kirakira-v2';
+const CACHE_NAME = 'kirakira-v3';
 const ASSETS = [
   '/',
   '/index.html',
@@ -18,6 +18,12 @@ const ASSETS = [
   '/games/alien-smash.js',
   '/games/fly-swatter.html',
   '/games/fly-swatter.js',
+  '/games/whack-mole.html',
+  '/games/whack-mole.js',
+  '/games/fruit-catch.html',
+  '/games/fruit-catch.js',
+  '/games/light-button.html',
+  '/games/light-button.js',
   '/manifest.webmanifest',
 ];
 
