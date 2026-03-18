@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>おえかき</title>
+  <link rel="stylesheet" href="../css/common.css">
+  <style>
+    body { background: #FFF8F0; }
+    #canvas { height: calc(100% - 80px); }
+    .palette {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.9);
+      padding: 0 10px;
+      z-index: 50;
+    }
+    .color-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 4px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .color-btn:active, .color-btn.active {
+      transform: scale(1.15);
+      border-color: #333;
+    }
+    .clear-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 3px solid #ccc;
+      background: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .clear-btn:active { transform: scale(0.9); }
+  </style>
+</head>
+<body>
+  <button class="home-btn" onclick="location.href='../index.html'">🏠</button>
+  <button class="sound-btn" id="soundBtn" onclick="toggleSound()">🔊</button>
+  <canvas id="canvas"></canvas>
+  <div class="palette" id="palette"></div>
+
+  <script src="../js/utils.js"></script>
+  <script src="../js/particles.js"></script>
+  <script src="../js/audio.js"></script>
+  <script src="free-draw.js"></script>
+</body>
+</html>
