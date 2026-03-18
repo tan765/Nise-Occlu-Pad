@@ -25,9 +25,10 @@ const basket = {
 
 // フルーツ
 const fruits = [];
-let maxFruits = 1;
-let fruitSpeed = 80;
+let maxFruits = 2;
+let fruitSpeed = 130;
 let difficultyTimer = 0;
+let firstFruitSpawned = false;
 
 // フルーツの種類
 const FRUIT_TYPES = [
@@ -51,7 +52,7 @@ onResize(canvas, () => resize());
 
 function createFruit() {
   const type = FRUIT_TYPES[randInt(0, FRUIT_TYPES.length - 1)];
-  const size = rand(28, 38);
+  const size = rand(80, 110);
   return {
     x: rand(size + 20, w - size - 20),
     y: -size,
@@ -269,9 +270,10 @@ function resetGame() {
   gameStarted = false;
   gameScore = 0;
   showingResults = false;
-  maxFruits = 1;
-  fruitSpeed = 80;
+  maxFruits = 2;
+  fruitSpeed = 130;
   difficultyTimer = 0;
+  firstFruitSpawned = false;
   fruits.length = 0;
   basket.x = w / 2;
   basket.targetX = w / 2;
@@ -310,10 +312,10 @@ function animate(time) {
     if (gameTimer <= 0) { gameTimer = 0; showingResults = true; }
 
     difficultyTimer += dt;
-    if (difficultyTimer > 20) {
+    if (difficultyTimer > 15) {
       difficultyTimer = 0;
-      maxFruits = Math.min(4, maxFruits + 1);
-      fruitSpeed += 15;
+      maxFruits = Math.min(5, maxFruits + 1);
+      fruitSpeed += 20;
     }
   }
 
@@ -393,7 +395,10 @@ function animate(time) {
     // フルーツ補充
     const activeFruits = fruits.filter(f => !f.bouncing).length;
     if (activeFruits < maxFruits && gameStarted) {
-      if (Math.random() < dt * 1.5) {
+      if (!firstFruitSpawned) {
+        fruits.push(createFruit());
+        firstFruitSpawned = true;
+      } else if (Math.random() < dt * 2.0) {
         fruits.push(createFruit());
       }
     }
