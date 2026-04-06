@@ -5,7 +5,7 @@
 const canvas = document.getElementById('canvas');
 let ctx = setupCanvas(canvas);
 const particles = new ParticleSystem(500);
-let w, h;
+let w, h, S = 1;
 let lastTime = 0;
 
 // タイマー
@@ -29,6 +29,9 @@ function resize() {
   ctx = setupCanvas(canvas);
   w = canvas._cssWidth;
   h = canvas._cssHeight;
+  S = getScale(canvas);
+  replayBtn.w = 200 * S;
+  replayBtn.h = 56 * S;
   layoutHoles();
 }
 
@@ -44,8 +47,8 @@ function layoutHoles() {
       holes.push({
         x: marginX + cellW * (c + 0.5),
         y: marginTop + cellH * (r + 0.5) + cellH * 0.15,
-        holeW: Math.min(cellW * 0.7, 120),
-        holeH: Math.min(cellH * 0.25, 35),
+        holeW: Math.min(cellW * 0.7, 120 * S),
+        holeH: Math.min(cellH * 0.25, 35 * S),
         moleUp: 0, // 0=hidden, 0-1=rising, 1=fully up
         state: 'hidden', // hidden, rising, up, whacked, hiding
         timer: rand(0.5, 2.5),
@@ -69,16 +72,16 @@ function drawHole(hole) {
 
   // 穴の縁
   ctx.strokeStyle = 'rgba(100, 70, 30, 0.5)';
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 3 * S;
   ctx.beginPath();
-  ctx.ellipse(x, y, holeW / 2 + 2, holeH / 2 + 2, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, y, holeW / 2 + 2 * S, holeH / 2 + 2 * S, 0, 0, Math.PI * 2);
   ctx.stroke();
 }
 
 function drawMole(hole) {
   if (hole.moleUp <= 0) return;
   const { x, y, holeW, holeH, moleUp } = hole;
-  const moleSize = Math.min(holeW * 0.55, 55);
+  const moleSize = Math.min(holeW * 0.55, 55 * S);
   const riseHeight = moleSize * 1.6;
   const moleY = y - riseHeight * moleUp;
 
@@ -115,12 +118,13 @@ function drawMole(hole) {
   // 目
   if (hole.state === 'whacked') {
     // × 目
-    ctx.strokeStyle = '#222'; ctx.lineWidth = 3;
+    ctx.strokeStyle = '#222'; ctx.lineWidth = 3 * S;
     [-1, 1].forEach(side => {
       const ex = side * moleSize * 0.25, ey = -moleSize * 0.25;
+      const d = 5 * S;
       ctx.beginPath();
-      ctx.moveTo(ex - 5, ey - 5); ctx.lineTo(ex + 5, ey + 5);
-      ctx.moveTo(ex + 5, ey - 5); ctx.lineTo(ex - 5, ey + 5);
+      ctx.moveTo(ex - d, ey - d); ctx.lineTo(ex + d, ey + d);
+      ctx.moveTo(ex + d, ey - d); ctx.lineTo(ex - d, ey + d);
       ctx.stroke();
     });
   } else {
@@ -149,12 +153,12 @@ function drawMole(hole) {
   ctx.fillRect(moleSize * 0.01, moleSize * 0.05, moleSize * 0.05, moleSize * 0.1);
 
   // ヒゲ
-  ctx.strokeStyle = '#555'; ctx.lineWidth = 1.5;
+  ctx.strokeStyle = '#555'; ctx.lineWidth = 1.5 * S;
   [-1, 1].forEach(side => {
     for (let i = -1; i <= 1; i++) {
       ctx.beginPath();
-      ctx.moveTo(side * moleSize * 0.15, -moleSize * 0.02 + i * 6);
-      ctx.lineTo(side * moleSize * 0.55, -moleSize * 0.08 + i * 8);
+      ctx.moveTo(side * moleSize * 0.15, -moleSize * 0.02 + i * 6 * S);
+      ctx.lineTo(side * moleSize * 0.55, -moleSize * 0.08 + i * 8 * S);
       ctx.stroke();
     }
   });
@@ -174,17 +178,17 @@ function drawGameTimer() {
   const secs = Math.ceil(gameTimer);
   ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,0.2)';
-  ctx.beginPath(); ctx.roundRect(w / 2 - 40, 12, 80, 32, 16); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(w / 2 - 40 * S, 12 * S, 80 * S, 32 * S, 16 * S); ctx.fill();
   ctx.fillStyle = secs <= 10 ? '#e55' : '#654';
-  ctx.font = 'bold 20px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(20, S);
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(`${secs}`, w / 2, 28);
+  ctx.fillText(`${secs}`, w / 2, 28 * S);
 
   ctx.fillStyle = 'rgba(0,0,0,0.2)';
-  ctx.beginPath(); ctx.roundRect(w / 2 + 50, 12, 100, 32, 16); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(w / 2 + 50 * S, 12 * S, 100 * S, 32 * S, 16 * S); ctx.fill();
   ctx.fillStyle = '#654';
-  ctx.font = 'bold 18px "Hiragino Sans", sans-serif';
-  ctx.fillText(`${gameScore} ひき`, w / 2 + 100, 28);
+  ctx.font = scaledFont(18, S);
+  ctx.fillText(`${gameScore} ひき`, w / 2 + 100 * S, 28 * S);
   ctx.restore();
 }
 
@@ -193,24 +197,24 @@ function drawResults() {
   ctx.fillRect(0, 0, w, h);
   ctx.save();
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 38px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(38, S);
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText('おわり！', w / 2, h * 0.3);
-  ctx.font = 'bold 60px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(60, S);
   ctx.fillStyle = '#FFD700';
   ctx.fillText(`${gameScore}`, w / 2, h * 0.44);
-  ctx.font = 'bold 22px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(22, S);
   ctx.fillStyle = '#fff';
   ctx.fillText('ひき たたいたよ！', w / 2, h * 0.54);
 
   replayBtn.x = w / 2 - replayBtn.w / 2;
   replayBtn.y = h * 0.66;
   ctx.fillStyle = 'rgba(255,255,255,0.2)';
-  ctx.beginPath(); ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28 * S); ctx.fill();
   ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28 * S); ctx.stroke();
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 22px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(22, S);
   ctx.fillText('もういっかい', w / 2, replayBtn.y + replayBtn.h / 2);
   ctx.restore();
 }
@@ -247,7 +251,7 @@ canvas.addEventListener('pointerdown', (e) => {
   for (const hole of holes) {
     if (hole.state !== 'up' && hole.state !== 'rising') continue;
     if (hole.moleUp < 0.5) continue;
-    const moleSize = Math.min(hole.holeW * 0.55, 55);
+    const moleSize = Math.min(hole.holeW * 0.55, 55 * S);
     const riseHeight = moleSize * 1.6;
     const moleY = hole.y - riseHeight * hole.moleUp;
 
@@ -258,10 +262,10 @@ canvas.addEventListener('pointerdown', (e) => {
       gameScore++;
       soundManager.play('whack', 0.7);
       particles.emit(hole.x, moleY, 20, {
-        speedMin: 50, speedMax: 180,
-        sizeMin: 4, sizeMax: 10,
+        speedMin: 50 * S, speedMax: 180 * S,
+        sizeMin: 4 * S, sizeMax: 10 * S,
         lifeMin: 0.4, lifeMax: 1.0,
-        gravity: 50, hue: 45, shape: 'star',
+        gravity: 50 * S, hue: 45, shape: 'star',
       });
       break;
     }

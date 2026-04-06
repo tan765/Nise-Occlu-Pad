@@ -5,7 +5,7 @@
 const canvas = document.getElementById('canvas');
 let ctx = setupCanvas(canvas);
 const particles = new ParticleSystem(500);
-let w, h;
+let w, h, S = 1;
 let lastTime = 0;
 
 // タイマー
@@ -39,17 +39,20 @@ function resize() {
   ctx = setupCanvas(canvas);
   w = canvas._cssWidth;
   h = canvas._cssHeight;
+  S = getScale(canvas);
+  replayBtn.w = 200 * S;
+  replayBtn.h = 56 * S;
   layoutButtons();
 }
 
 function layoutButtons() {
   buttons.length = 0;
-  const gap = 16;
-  const btnSize = Math.min((w - gap * 3) / 2, (h - gap * 3 - 100) / 2, 200);
+  const gap = 16 * S;
+  const btnSize = Math.min((w - gap * 3) / 2, (h - gap * 3 - 100 * S) / 2, 200 * S);
   const totalW = btnSize * 2 + gap;
   const totalH = btnSize * 2 + gap;
   const startX = (w - totalW) / 2;
-  const startY = (h - totalH) / 2 + 20;
+  const startY = (h - totalH) / 2 + 20 * S;
 
   for (let i = 0; i < 4; i++) {
     const col = i % 2, row = Math.floor(i / 2);
@@ -133,10 +136,10 @@ canvas.addEventListener('pointerdown', (e) => {
           // 大きなパーティクル
           const cx = w / 2, cy = h / 2;
           particles.emit(cx, cy, 30, {
-            speedMin: 80, speedMax: 250,
-            sizeMin: 5, sizeMax: 14,
+            speedMin: 80 * S, speedMax: 250 * S,
+            sizeMin: 5 * S, sizeMax: 14 * S,
             lifeMin: 0.5, lifeMax: 1.5,
-            gravity: 40,
+            gravity: 40 * S,
             hue: BUTTON_COLORS[i].hue,
             shape: 'star',
           });
@@ -162,7 +165,7 @@ function drawButton(b, index) {
   if (b.lit > 0.1) {
     // 光っている
     ctx.shadowColor = b.color.bright;
-    ctx.shadowBlur = 30 * b.lit;
+    ctx.shadowBlur = 30 * S * b.lit;
     ctx.fillStyle = b.color.bright;
   } else {
     ctx.fillStyle = b.color.dark;
@@ -188,7 +191,7 @@ function drawButton(b, index) {
   // ハイライト
   ctx.fillStyle = `rgba(255,255,255,${b.lit > 0.1 ? 0.15 : 0.08})`;
   ctx.beginPath();
-  ctx.roundRect(-b.w / 2 + 8, -b.h / 2 + 6, b.w - 16, b.h * 0.35, r * 0.8);
+  ctx.roundRect(-b.w / 2 + 8 * S, -b.h / 2 + 6 * S, b.w - 16 * S, b.h * 0.35, r * 0.8);
   ctx.fill();
 
   ctx.restore();
@@ -199,18 +202,18 @@ function drawGameTimer() {
   const secs = Math.ceil(gameTimer);
   ctx.save();
   ctx.fillStyle = 'rgba(255,255,255,0.1)';
-  ctx.beginPath(); ctx.roundRect(w / 2 - 40, 12, 80, 32, 16); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(w / 2 - 40 * S, 12 * S, 80 * S, 32 * S, 16 * S); ctx.fill();
   ctx.fillStyle = secs <= 10 ? '#f66' : 'rgba(255,255,255,0.7)';
-  ctx.font = 'bold 20px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(20, S);
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(`${secs}`, w / 2, 28);
+  ctx.fillText(`${secs}`, w / 2, 28 * S);
 
   // レベル表示
   ctx.fillStyle = 'rgba(255,255,255,0.1)';
-  ctx.beginPath(); ctx.roundRect(w / 2 + 50, 12, 110, 32, 16); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(w / 2 + 50 * S, 12 * S, 110 * S, 32 * S, 16 * S); ctx.fill();
   ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 18px "Hiragino Sans", sans-serif';
-  ctx.fillText(`レベル ${level}`, w / 2 + 105, 28);
+  ctx.font = scaledFont(18, S);
+  ctx.fillText(`レベル ${level}`, w / 2 + 105 * S, 28 * S);
   ctx.restore();
 }
 
@@ -219,24 +222,24 @@ function drawResults() {
   ctx.fillRect(0, 0, w, h);
   ctx.save();
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 38px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(38, S);
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText('おわり！', w / 2, h * 0.3);
-  ctx.font = 'bold 56px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(56, S);
   ctx.fillStyle = '#FFD700';
   ctx.fillText(`レベル ${level}`, w / 2, h * 0.44);
-  ctx.font = 'bold 22px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(22, S);
   ctx.fillStyle = '#fff';
   ctx.fillText('まで いけたよ！', w / 2, h * 0.54);
 
   replayBtn.x = w / 2 - replayBtn.w / 2;
   replayBtn.y = h * 0.66;
   ctx.fillStyle = 'rgba(255,255,255,0.2)';
-  ctx.beginPath(); ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28 * S); ctx.fill();
   ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28 * S); ctx.stroke();
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 22px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(22, S);
   ctx.fillText('もういっかい', w / 2, replayBtn.y + replayBtn.h / 2);
   ctx.restore();
 }
@@ -315,7 +318,7 @@ function animate(time) {
   if (state === 'levelup') {
     ctx.save();
     ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 32px "Hiragino Sans", sans-serif';
+    ctx.font = scaledFont(32, S);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const pulse = 1 + Math.sin(stateTimer * 10) * 0.1;
     ctx.translate(w / 2, h * 0.12);
@@ -328,7 +331,7 @@ function animate(time) {
   if (state === 'wrong') {
     ctx.save();
     ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.font = 'bold 26px "Hiragino Sans", sans-serif';
+    ctx.font = scaledFont(26, S);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('もういっかい みるよ', w / 2, h * 0.12);
     ctx.restore();
@@ -338,7 +341,7 @@ function animate(time) {
   if (state === 'idle' && !showingResults && !gameStarted) {
     ctx.save();
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.font = 'bold 24px "Hiragino Sans", sans-serif';
+    ctx.font = scaledFont(24, S);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const pulse = 0.7 + Math.sin(time / 400) * 0.3;
     ctx.globalAlpha = pulse;

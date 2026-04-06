@@ -5,7 +5,7 @@
 const canvas = document.getElementById('canvas');
 let ctx = setupCanvas(canvas);
 const particles = new ParticleSystem(400);
-let w, h;
+let w, h, S = 1;
 let lastTime = 0;
 
 // タイマー
@@ -43,24 +43,29 @@ function resize() {
   ctx = setupCanvas(canvas);
   w = canvas._cssWidth;
   h = canvas._cssHeight;
-  basket.y = h - 80;
+  S = getScale(canvas);
+  basket.width = 110 * S;
+  basket.height = 60 * S;
+  basket.y = h - 80 * S;
   basket.x = w / 2;
   basket.targetX = w / 2;
+  replayBtn.w = 200 * S;
+  replayBtn.h = 56 * S;
 }
 resize();
 onResize(canvas, () => resize());
 
 function createFruit() {
   const type = FRUIT_TYPES[randInt(0, FRUIT_TYPES.length - 1)];
-  const size = rand(80, 110);
+  const size = rand(80 * S, 110 * S);
   return {
     x: rand(size + 20, w - size - 20),
     y: -size,
     size,
     type,
-    speed: fruitSpeed + rand(-20, 20),
+    speed: fruitSpeed * S + rand(-20 * S, 20 * S),
     wobblePhase: Math.random() * Math.PI * 2,
-    wobbleAmp: rand(15, 30),
+    wobbleAmp: rand(15 * S, 30 * S),
     rotation: 0,
     rotSpeed: rand(-2, 2),
     active: true,
@@ -84,7 +89,7 @@ function drawApple(x, y, size) {
   ctx.fill();
   // 茎
   ctx.strokeStyle = '#654';
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 2 * S;
   ctx.beginPath();
   ctx.moveTo(x, y - size * 0.35);
   ctx.lineTo(x, y - size * 0.5);
@@ -158,7 +163,7 @@ function drawStrawberry(x, y, size) {
     const sx = x + (Math.random() - 0.5) * size * 0.3;
     const sy = y + (Math.random() - 0.5) * size * 0.3;
     ctx.beginPath();
-    ctx.arc(sx, sy, 1.5, 0, Math.PI * 2);
+    ctx.arc(sx, sy, 1.5 * S, 0, Math.PI * 2);
     ctx.fill();
   }
   // 葉
@@ -171,7 +176,7 @@ function drawStrawberry(x, y, size) {
 function drawBasket() {
   const bx = basket.x, by = basket.y;
   const bw = basket.width / 2, bh = basket.height;
-  const bounce = basket.bounceTimer > 0 ? Math.sin(basket.bounceTimer * 15) * 5 : 0;
+  const bounce = basket.bounceTimer > 0 ? Math.sin(basket.bounceTimer * 15) * 5 * S : 0;
 
   ctx.save();
   ctx.translate(0, bounce);
@@ -189,7 +194,7 @@ function drawBasket() {
 
   // 編み模様
   ctx.strokeStyle = 'rgba(139, 90, 43, 0.5)';
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 1.5 * S;
   for (let i = 0; i < 4; i++) {
     const t = (i + 1) / 5;
     const ly = by + bh * t;
@@ -209,7 +214,7 @@ function drawBasket() {
 
   // 縁
   ctx.strokeStyle = '#8B4513';
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 4 * S;
   ctx.lineCap = 'round';
   ctx.beginPath();
   ctx.moveTo(bx - topW, by);
@@ -224,17 +229,17 @@ function drawGameTimer() {
   const secs = Math.ceil(gameTimer);
   ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,0.2)';
-  ctx.beginPath(); ctx.roundRect(w / 2 - 40, 12, 80, 32, 16); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(w / 2 - 40 * S, 12 * S, 80 * S, 32 * S, 16 * S); ctx.fill();
   ctx.fillStyle = secs <= 10 ? '#e55' : '#fff';
-  ctx.font = 'bold 20px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(20, S);
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(`${secs}`, w / 2, 28);
+  ctx.fillText(`${secs}`, w / 2, 28 * S);
 
   ctx.fillStyle = 'rgba(0,0,0,0.2)';
-  ctx.beginPath(); ctx.roundRect(w / 2 + 50, 12, 100, 32, 16); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(w / 2 + 50 * S, 12 * S, 100 * S, 32 * S, 16 * S); ctx.fill();
   ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 18px "Hiragino Sans", sans-serif';
-  ctx.fillText(`${gameScore} こ`, w / 2 + 100, 28);
+  ctx.font = scaledFont(18, S);
+  ctx.fillText(`${gameScore} こ`, w / 2 + 100 * S, 28 * S);
   ctx.restore();
 }
 
@@ -243,24 +248,24 @@ function drawResults() {
   ctx.fillRect(0, 0, w, h);
   ctx.save();
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 38px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(38, S);
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText('おわり！', w / 2, h * 0.3);
-  ctx.font = 'bold 60px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(60, S);
   ctx.fillStyle = '#FFD700';
   ctx.fillText(`${gameScore}`, w / 2, h * 0.44);
-  ctx.font = 'bold 22px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(22, S);
   ctx.fillStyle = '#fff';
   ctx.fillText('こ キャッチしたよ！', w / 2, h * 0.54);
 
   replayBtn.x = w / 2 - replayBtn.w / 2;
   replayBtn.y = h * 0.66;
   ctx.fillStyle = 'rgba(255,255,255,0.2)';
-  ctx.beginPath(); ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28 * S); ctx.fill();
   ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28 * S); ctx.stroke();
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 22px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(22, S);
   ctx.fillText('もういっかい', w / 2, replayBtn.y + replayBtn.h / 2);
   ctx.restore();
 }
@@ -330,12 +335,12 @@ function animate(time) {
   // 雲
   ctx.fillStyle = 'rgba(255,255,255,0.5)';
   const cloudX = ((time / 60) % (w + 200)) - 100;
-  drawCloud(cloudX, h * 0.1, 50);
-  drawCloud(((cloudX + w * 0.5) % (w + 200)) - 100, h * 0.18, 35);
+  drawCloud(cloudX, h * 0.1, 50 * S);
+  drawCloud(((cloudX + w * 0.5) % (w + 200)) - 100, h * 0.18, 35 * S);
 
   // 地面
   ctx.fillStyle = '#8BC34A';
-  ctx.fillRect(0, h - 30, w, 30);
+  ctx.fillRect(0, h - 30 * S, w, 30 * S);
 
   if (!showingResults) {
     // カゴ更新
@@ -346,7 +351,7 @@ function animate(time) {
     for (let i = fruits.length - 1; i >= 0; i--) {
       const f = fruits[i];
       if (f.bouncing) {
-        f.bounceVy += 300 * dt;
+        f.bounceVy += 300 * S * dt;
         f.y += f.bounceVy * dt;
         f.bounceAlpha -= dt * 1.5;
         f.rotation += f.rotSpeed * dt * 3;
@@ -366,19 +371,19 @@ function animate(time) {
           basket.bounceTimer = 0.3;
           soundManager.play('catch', 0.7);
           particles.emit(f.x, basket.y, 12, {
-            speedMin: 40, speedMax: 120,
-            sizeMin: 3, sizeMax: 8,
+            speedMin: 40 * S, speedMax: 120 * S,
+            sizeMin: 3 * S, sizeMax: 8 * S,
             lifeMin: 0.3, lifeMax: 0.8,
-            gravity: 40, hue: f.type.hue, shape: 'star',
+            gravity: 40 * S, hue: f.type.hue, shape: 'star',
           });
           fruits.splice(i, 1);
           continue;
         }
 
         // 地面に落下
-        if (f.y > h - 30) {
+        if (f.y > h - 30 * S) {
           f.bouncing = true;
-          f.bounceVy = -80;
+          f.bounceVy = -80 * S;
           f.bounceAlpha = 1;
         }
       }

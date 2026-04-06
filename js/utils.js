@@ -87,3 +87,18 @@ function hsl(h, s, l) {
 function hsla(h, s, l, a) {
   return `hsla(${h}, ${s}%, ${l}%, ${a})`;
 }
+
+/**
+ * 画面幅ベースのスケール係数（iPhone 375px 基準）
+ * タブレットではオブジェクト・速度を比例拡大
+ */
+function getScale(canvas) {
+  return Math.max(1, Math.min(3, canvas._cssWidth / 375));
+}
+
+/**
+ * スケーリング付きフォント文字列
+ */
+function scaledFont(basePx, scale, weight) {
+  return `${weight || 'bold'} ${Math.round(basePx * scale)}px "Hiragino Sans", sans-serif`;
+}

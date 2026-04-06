@@ -5,7 +5,7 @@
 const canvas = document.getElementById('canvas');
 let ctx = setupCanvas(canvas);
 const particles = new ParticleSystem(400);
-let w, h;
+let w, h, S = 1;
 let lastTime = 0;
 const balloons = [];
 const MAX_BALLOONS = 7;
@@ -32,6 +32,9 @@ function resize() {
   ctx = setupCanvas(canvas);
   w = canvas._cssWidth;
   h = canvas._cssHeight;
+  S = getScale(canvas);
+  replayBtn.w = 200 * S;
+  replayBtn.h = 56 * S;
 }
 resize();
 onResize(canvas, () => resize());
@@ -40,8 +43,8 @@ function createBalloon() {
   const color = COLORS[randInt(0, COLORS.length - 1)];
   // 20% の確率で速くて小さい風船
   const isFast = Math.random() < 0.2;
-  const radius = isFast ? rand(30, 42) : rand(40, 60);
-  const speed = isFast ? rand(1.5, 2.2) : rand(0.5, 1.8);
+  const radius = isFast ? rand(30 * S, 42 * S) : rand(40 * S, 60 * S);
+  const speed = isFast ? rand(1.5 * S, 2.2 * S) : rand(0.5 * S, 1.8 * S);
   return {
     x: rand(radius, w - radius),
     y: h + radius + rand(0, 100),
@@ -50,7 +53,7 @@ function createBalloon() {
     speed: speed,
     wobblePhase: Math.random() * Math.PI * 2,
     wobbleSpeed: rand(1, 2.5),
-    wobbleAmp: rand(15, 30),
+    wobbleAmp: rand(15 * S, 30 * S),
     popped: false,
   };
 }
@@ -88,10 +91,10 @@ function drawBalloon(b) {
 
   // 紐
   ctx.strokeStyle = hsl(b.color.h, b.color.s, b.color.l - 10);
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 2 * S;
   ctx.beginPath();
   ctx.moveTo(0, b.radius);
-  ctx.quadraticCurveTo(5, b.radius + 15, -3, b.radius + 30);
+  ctx.quadraticCurveTo(5 * S, b.radius + 15 * S, -3 * S, b.radius + 30 * S);
   ctx.stroke();
 
   ctx.restore();
@@ -101,18 +104,18 @@ function popBalloon(b) {
   b.popped = true;
   gameScore++;
   particles.emit(b.x, b.y, 20, {
-    speedMin: 60, speedMax: 180,
-    sizeMin: 4, sizeMax: 10,
+    speedMin: 60 * S, speedMax: 180 * S,
+    sizeMin: 4 * S, sizeMax: 10 * S,
     lifeMin: 0.5, lifeMax: 1.2,
-    gravity: 50,
+    gravity: 50 * S,
     hue: b.color.h,
     shape: 'circle'
   });
   particles.emit(b.x, b.y, 8, {
-    speedMin: 30, speedMax: 100,
-    sizeMin: 3, sizeMax: 7,
+    speedMin: 30 * S, speedMax: 100 * S,
+    sizeMin: 3 * S, sizeMax: 7 * S,
     lifeMin: 0.4, lifeMax: 1.0,
-    gravity: 30,
+    gravity: 30 * S,
     hue: (b.color.h + 180) % 360,
     shape: 'star'
   });
@@ -171,13 +174,13 @@ function drawTimer() {
   ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,0.2)';
   ctx.beginPath();
-  ctx.roundRect(w / 2 - 40, 12, 80, 32, 16);
+  ctx.roundRect(w / 2 - 40 * S, 12 * S, 80 * S, 32 * S, 16 * S);
   ctx.fill();
   ctx.fillStyle = secs <= 10 ? '#e55' : '#fff';
-  ctx.font = 'bold 20px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(20, S);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(`${secs}`, w / 2, 28);
+  ctx.fillText(`${secs}`, w / 2, 28 * S);
   ctx.restore();
 }
 
@@ -187,16 +190,16 @@ function drawResults() {
 
   ctx.save();
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 38px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(38, S);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('おわり！', w / 2, h * 0.3);
 
-  ctx.font = 'bold 60px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(60, S);
   ctx.fillStyle = '#FFD700';
   ctx.fillText(`${gameScore}`, w / 2, h * 0.44);
 
-  ctx.font = 'bold 22px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(22, S);
   ctx.fillStyle = '#fff';
   ctx.fillText('こ われたよ！', w / 2, h * 0.54);
 
@@ -205,15 +208,15 @@ function drawResults() {
   replayBtn.y = h * 0.66;
   ctx.fillStyle = 'rgba(255,255,255,0.2)';
   ctx.beginPath();
-  ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28);
+  ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28 * S);
   ctx.fill();
   ctx.strokeStyle = 'rgba(255,255,255,0.5)';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28);
+  ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28 * S);
   ctx.stroke();
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 22px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(22, S);
   ctx.fillText('もういっかい', w / 2, replayBtn.y + replayBtn.h / 2);
   ctx.restore();
 }
@@ -241,8 +244,8 @@ function animate(time) {
   // 雲（装飾）
   ctx.fillStyle = 'rgba(255,255,255,0.6)';
   const cloudX = ((time / 50) % (w + 200)) - 100;
-  drawCloud(cloudX, h * 0.15, 60);
-  drawCloud(((cloudX + w * 0.6) % (w + 200)) - 100, h * 0.25, 45);
+  drawCloud(cloudX, h * 0.15, 60 * S);
+  drawCloud(((cloudX + w * 0.6) % (w + 200)) - 100, h * 0.25, 45 * S);
 
   if (!showingResults) {
     // 風船更新

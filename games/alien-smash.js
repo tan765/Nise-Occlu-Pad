@@ -5,7 +5,7 @@
 const canvas = document.getElementById('canvas');
 let ctx = setupCanvas(canvas);
 const particles = new ParticleSystem(500);
-let w, h;
+let w, h, S = 1;
 let lastTime = 0;
 const aliens = [];
 const MAX_ALIENS = 5;
@@ -42,9 +42,14 @@ function resize() {
   ctx = setupCanvas(canvas);
   w = canvas._cssWidth;
   h = canvas._cssHeight;
-  paddle.y = h - 50;
+  S = getScale(canvas);
+  paddle.width = 130 * S;
+  paddle.height = 18 * S;
+  paddle.y = h - 50 * S;
   paddle.x = w / 2;
   paddle.targetX = w / 2;
+  replayBtn.w = 200 * S;
+  replayBtn.h = 56 * S;
 }
 resize();
 onResize(canvas, () => resize());
@@ -52,14 +57,14 @@ onResize(canvas, () => resize());
 function createAlien() {
   const face = FACES[randInt(0, FACES.length - 1)];
   const colorHue = ALIEN_COLORS[randInt(0, ALIEN_COLORS.length - 1)];
-  const size = rand(50, 70);
+  const size = rand(50 * S, 70 * S);
   return {
     x: rand(size + 20, w - size - 20),
     y: -size,
-    targetY: rand(size + 70, h * 0.55),
-    size, hue: colorHue, face, speed: rand(40, 80),
+    targetY: rand(size + 70 * S, h * 0.55),
+    size, hue: colorHue, face, speed: rand(40 * S, 80 * S),
     wobble: Math.random() * Math.PI * 2,
-    wobbleSpeed: rand(1, 3), wobbleAmp: rand(10, 25),
+    wobbleSpeed: rand(1, 3), wobbleAmp: rand(10 * S, 25 * S),
     arrived: false, hit: false, hitTimer: 0,
     rotation: 0, scale: 1,
     hoverPhase: Math.random() * Math.PI * 2,
@@ -67,7 +72,7 @@ function createAlien() {
 }
 
 function createBreakoutBall(x, y) {
-  return { x, y, vx: 0, vy: 0, radius: 12, hue: rand(0, 360), speed: 320, trail: [], active: true, launched: false };
+  return { x, y, vx: 0, vy: 0, radius: 12 * S, hue: rand(0, 360), speed: 320 * S, trail: [], active: true, launched: false };
 }
 
 for (let i = 0; i < MAX_ALIENS; i++) {
@@ -77,7 +82,7 @@ for (let i = 0; i < MAX_ALIENS; i++) {
 }
 
 function spawnBall() {
-  ball = createBreakoutBall(paddle.x, paddle.y - paddle.height / 2 - 14);
+  ball = createBreakoutBall(paddle.x, paddle.y - paddle.height / 2 - 14 * S);
 }
 spawnBall();
 
@@ -97,19 +102,19 @@ function drawAlien(a) {
   ctx.fill();
 
   ctx.strokeStyle = hsl(a.hue, 60, 55);
-  ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.lineWidth = 3 * S; ctx.lineCap = 'round';
   ctx.beginPath();
   ctx.moveTo(-s * 0.2, -s * 0.8);
   ctx.quadraticCurveTo(-s * 0.4, -s * 1.3, -s * 0.5, -s * 1.15);
   ctx.stroke();
   ctx.fillStyle = hsl((a.hue + 60) % 360, 80, 65);
-  ctx.beginPath(); ctx.arc(-s * 0.5, -s * 1.15, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-s * 0.5, -s * 1.15, 5 * S, 0, Math.PI * 2); ctx.fill();
   ctx.beginPath();
   ctx.moveTo(s * 0.2, -s * 0.8);
   ctx.quadraticCurveTo(s * 0.4, -s * 1.3, s * 0.5, -s * 1.15);
   ctx.stroke();
   ctx.fillStyle = hsl((a.hue + 60) % 360, 80, 65);
-  ctx.beginPath(); ctx.arc(s * 0.5, -s * 1.15, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(s * 0.5, -s * 1.15, 5 * S, 0, Math.PI * 2); ctx.fill();
 
   drawEyes(a.face.eyes, s);
   drawMouth(a.face.mouth, s, a.hit);
@@ -144,12 +149,13 @@ function drawEyes(type, s) {
       ctx.fill();
       break;
     case '><':
-      ctx.strokeStyle = '#222'; ctx.lineWidth = 3;
+      ctx.strokeStyle = '#222'; ctx.lineWidth = 3 * S;
       [-1, 1].forEach(side => {
         const cx = side * eyeSpacing;
+        const d = 6 * S;
         ctx.beginPath();
-        ctx.moveTo(cx - 6, eyeY - 6); ctx.lineTo(cx + 6, eyeY + 6);
-        ctx.moveTo(cx + 6, eyeY - 6); ctx.lineTo(cx - 6, eyeY + 6);
+        ctx.moveTo(cx - d, eyeY - d); ctx.lineTo(cx + d, eyeY + d);
+        ctx.moveTo(cx + d, eyeY - d); ctx.lineTo(cx - d, eyeY + d);
         ctx.stroke();
       });
       break;
@@ -220,7 +226,7 @@ function drawPaddle() {
   ctx.save();
   const px = paddle.x - paddle.width / 2, py = paddle.y, r = paddle.height / 2;
   ctx.shadowColor = hsl(paddle.hue, 80, 60);
-  ctx.shadowBlur = 15;
+  ctx.shadowBlur = 15 * S;
   const grad = ctx.createLinearGradient(px, py, px, py + paddle.height);
   grad.addColorStop(0, hsl(paddle.hue, 75, 70));
   grad.addColorStop(0.5, hsl(paddle.hue, 80, 60));
@@ -229,7 +235,7 @@ function drawPaddle() {
   ctx.beginPath(); ctx.roundRect(px, py, paddle.width, paddle.height, r); ctx.fill();
   ctx.shadowBlur = 0;
   ctx.fillStyle = 'rgba(255,255,255,0.25)';
-  ctx.beginPath(); ctx.roundRect(px + 10, py + 2, paddle.width - 20, paddle.height * 0.4, r / 2); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(px + 10 * S, py + 2 * S, paddle.width - 20 * S, paddle.height * 0.4, r / 2); ctx.fill();
   ctx.restore();
 }
 
@@ -247,7 +253,7 @@ function drawBall(b) {
   ctx.fillStyle = grad;
   ctx.beginPath(); ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2); ctx.fill();
   ctx.save();
-  ctx.shadowColor = hsl(b.hue, 80, 60); ctx.shadowBlur = 10;
+  ctx.shadowColor = hsl(b.hue, 80, 60); ctx.shadowBlur = 10 * S;
   ctx.beginPath(); ctx.arc(b.x, b.y, b.radius * 0.5, 0, Math.PI * 2);
   ctx.fillStyle = hsl(b.hue, 90, 70); ctx.fill();
   ctx.restore();
@@ -258,18 +264,18 @@ function drawGameTimer() {
   const secs = Math.ceil(gameTimer);
   ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.beginPath(); ctx.roundRect(w / 2 - 40, 12, 80, 32, 16); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(w / 2 - 40 * S, 12 * S, 80 * S, 32 * S, 16 * S); ctx.fill();
   ctx.fillStyle = secs <= 10 ? '#f66' : '#fff';
-  ctx.font = 'bold 20px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(20, S);
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(`${secs}`, w / 2, 28);
+  ctx.fillText(`${secs}`, w / 2, 28 * S);
 
   // スコア
   ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.beginPath(); ctx.roundRect(w / 2 + 50, 12, 100, 32, 16); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(w / 2 + 50 * S, 12 * S, 100 * S, 32 * S, 16 * S); ctx.fill();
   ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 18px "Hiragino Sans", sans-serif';
-  ctx.fillText(`${gameScore} たい`, w / 2 + 100, 28);
+  ctx.font = scaledFont(18, S);
+  ctx.fillText(`${gameScore} たい`, w / 2 + 100 * S, 28 * S);
   ctx.restore();
 }
 
@@ -278,24 +284,24 @@ function drawResultsScreen() {
   ctx.fillRect(0, 0, w, h);
   ctx.save();
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 38px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(38, S);
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText('おわり！', w / 2, h * 0.3);
-  ctx.font = 'bold 60px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(60, S);
   ctx.fillStyle = '#FFD700';
   ctx.fillText(`${gameScore}`, w / 2, h * 0.44);
-  ctx.font = 'bold 22px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(22, S);
   ctx.fillStyle = '#fff';
   ctx.fillText('たい たおしたよ！', w / 2, h * 0.54);
 
   replayBtn.x = w / 2 - replayBtn.w / 2;
   replayBtn.y = h * 0.66;
   ctx.fillStyle = 'rgba(255,255,255,0.2)';
-  ctx.beginPath(); ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28 * S); ctx.fill();
   ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28 * S); ctx.stroke();
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 22px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(22, S);
   ctx.fillText('もういっかい', w / 2, replayBtn.y + replayBtn.h / 2);
   ctx.restore();
 }
@@ -338,7 +344,7 @@ canvas.addEventListener('pointerdown', (e) => {
 
   if (!directHit && ball && !ball.launched) {
     ball.launched = true;
-    ball.vx = rand(-120, 120);
+    ball.vx = rand(-120 * S, 120 * S);
     ball.vy = -ball.speed;
     normalizeBallSpeed();
     soundManager.play('bounce', 0.5);
@@ -362,8 +368,8 @@ function normalizeBallSpeed() {
 function hitAlien(a) {
   a.hit = true; a.hitTimer = 1.2;
   gameScore++;
-  particles.emit(a.x, a.y, 25, { speedMin: 60, speedMax: 200, sizeMin: 4, sizeMax: 12, lifeMin: 0.5, lifeMax: 1.5, gravity: 40, hue: a.hue, shape: 'star' });
-  particles.emit(a.x, a.y, 10, { speedMin: 30, speedMax: 100, sizeMin: 3, sizeMax: 7, lifeMin: 0.4, lifeMax: 1.0, gravity: 20, hue: (a.hue + 180) % 360, shape: 'heart' });
+  particles.emit(a.x, a.y, 25, { speedMin: 60 * S, speedMax: 200 * S, sizeMin: 4 * S, sizeMax: 12 * S, lifeMin: 0.5, lifeMax: 1.5, gravity: 40 * S, hue: a.hue, shape: 'star' });
+  particles.emit(a.x, a.y, 10, { speedMin: 30 * S, speedMax: 100 * S, sizeMin: 3 * S, sizeMax: 7 * S, lifeMin: 0.4, lifeMax: 1.0, gravity: 20 * S, hue: (a.hue + 180) % 360, shape: 'heart' });
   soundManager.play('happy', 0.7);
 }
 
@@ -395,13 +401,13 @@ function animate(time) {
         if (a.y >= a.targetY) { a.y = a.targetY; a.arrived = true; }
       } else if (a.hit) {
         a.hitTimer -= dt; a.rotation += 10 * dt;
-        a.scale = Math.max(0, a.hitTimer / 1.2); a.y -= 80 * dt;
+        a.scale = Math.max(0, a.hitTimer / 1.2); a.y -= 80 * S * dt;
         if (a.hitTimer <= 0) { aliens.splice(i, 1); continue; }
       } else {
         a.wobble += a.wobbleSpeed * dt;
         a.x += Math.sin(a.wobble) * a.wobbleAmp * dt;
         a.hoverPhase += 1.5 * dt;
-        a.y = a.targetY + Math.sin(a.hoverPhase) * 8;
+        a.y = a.targetY + Math.sin(a.hoverPhase) * 8 * S;
       }
       drawAlien(a);
     }
@@ -413,7 +419,7 @@ function animate(time) {
     if (ball && ball.active) {
       if (!ball.launched) {
         ball.x = paddle.x;
-        ball.y = paddle.y - paddle.height / 2 - ball.radius - 2;
+        ball.y = paddle.y - paddle.height / 2 - ball.radius - 2 * S;
       } else {
         ball.x += ball.vx * dt; ball.y += ball.vy * dt;
         ball.trail.push({ x: ball.x, y: ball.y });
@@ -432,7 +438,7 @@ function animate(time) {
           ball.vy = -Math.cos(angle) * ball.speed;
           ball.hue = (ball.hue + 60) % 360;
           soundManager.play('bounce', 0.5);
-          particles.emit(ball.x, ball.y, 5, { speedMin: 20, speedMax: 60, sizeMin: 2, sizeMax: 5, lifeMin: 0.2, lifeMax: 0.5, gravity: 30, hue: ball.hue, shape: 'circle' });
+          particles.emit(ball.x, ball.y, 5, { speedMin: 20 * S, speedMax: 60 * S, sizeMin: 2 * S, sizeMax: 5 * S, lifeMin: 0.2, lifeMax: 0.5, gravity: 30 * S, hue: ball.hue, shape: 'circle' });
         }
 
         for (const a of aliens) {
@@ -440,7 +446,7 @@ function animate(time) {
           if (dist(ball.x, ball.y, a.x, a.y) < a.size * 0.9 + ball.radius) {
             hitAlien(a);
             ball.vy = -ball.vy;
-            ball.y += ball.vy > 0 ? 5 : -5;
+            ball.y += ball.vy > 0 ? 5 * S : -5 * S;
             normalizeBallSpeed();
             break;
           }

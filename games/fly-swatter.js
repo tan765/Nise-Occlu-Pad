@@ -5,7 +5,7 @@
 const canvas = document.getElementById('canvas');
 let ctx = setupCanvas(canvas);
 const particles = new ParticleSystem(500);
-let w, h;
+let w, h, S = 1;
 let lastTime = 0;
 const flies = [];
 const splats = [];
@@ -40,23 +40,27 @@ function resize() {
   ctx = setupCanvas(canvas);
   w = canvas._cssWidth;
   h = canvas._cssHeight;
+  S = getScale(canvas);
+  replayBtn.w = 200 * S;
+  replayBtn.h = 56 * S;
 }
 resize();
 onResize(canvas, () => resize());
 
 function createFly() {
+  const margin = 60 * S;
   return {
-    x: rand(60, w - 60),
-    y: rand(60, h - 60),
-    targetX: rand(60, w - 60),
-    targetY: rand(60, h - 60),
-    speed: rand(80, 150) * difficulty.speedMultiplier,
-    size: rand(24, 34),
+    x: rand(margin, w - margin),
+    y: rand(margin, h - margin),
+    targetX: rand(margin, w - margin),
+    targetY: rand(margin, h - margin),
+    speed: rand(80 * S, 150 * S) * difficulty.speedMultiplier,
+    size: rand(24 * S, 34 * S),
     wingPhase: Math.random() * Math.PI * 2,
     wingSpeed: rand(15, 25),
     alive: true,
     wobblePhase: Math.random() * Math.PI * 2,
-    wobbleAmp: rand(20, 40),
+    wobbleAmp: rand(20 * S, 40 * S),
     restTimer: 0,
     resting: false,
   };
@@ -148,14 +152,14 @@ function drawSplat(sp) {
   ctx.translate(sp.x, sp.y);
   ctx.fillStyle = 'rgba(80, 80, 40, 0.5)';
   ctx.beginPath();
-  ctx.ellipse(0, 0, 18, 12, sp.angle || 0, 0, Math.PI * 2);
+  ctx.ellipse(0, 0, 18 * S, 12 * S, sp.angle || 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = 'rgba(60, 60, 30, 0.4)';
   for (let i = 0; i < 5; i++) {
-    const dx = (i * 7.3 + sp.x) % 20 - 10;
-    const dy = (i * 5.7 + sp.y) % 14 - 7;
+    const dx = ((i * 7.3 + sp.x) % 20 - 10) * S;
+    const dy = ((i * 5.7 + sp.y) % 14 - 7) * S;
     ctx.beginPath();
-    ctx.arc(dx, dy, 2, 0, Math.PI * 2);
+    ctx.arc(dx, dy, 2 * S, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
@@ -170,16 +174,16 @@ function drawSwatter() {
   ctx.scale(scale, scale);
   ctx.globalAlpha = Math.min(1, t * 3);
 
-  const r = 32;
+  const r = 32 * S;
   ctx.fillStyle = swatter.hit ? 'rgba(255, 80, 80, 0.7)' : 'rgba(160, 160, 160, 0.6)';
   ctx.beginPath();
   ctx.arc(0, 0, r, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 1 * S;
   ctx.beginPath();
-  for (let i = -r; i <= r; i += 10) {
+  for (let i = -r; i <= r; i += 10 * S) {
     const halfW = Math.sqrt(Math.max(0, r * r - i * i));
     ctx.moveTo(-halfW, i); ctx.lineTo(halfW, i);
     ctx.moveTo(i, -halfW); ctx.lineTo(i, halfW);
@@ -187,13 +191,13 @@ function drawSwatter() {
   ctx.stroke();
 
   ctx.strokeStyle = swatter.hit ? '#c33' : '#888';
-  ctx.lineWidth = 2.5;
+  ctx.lineWidth = 2.5 * S;
   ctx.beginPath();
   ctx.arc(0, 0, r, 0, Math.PI * 2);
   ctx.stroke();
 
   ctx.strokeStyle = '#8B4513';
-  ctx.lineWidth = 6;
+  ctx.lineWidth = 6 * S;
   ctx.lineCap = 'round';
   ctx.beginPath();
   ctx.moveTo(r * 0.5, r * 0.5);
@@ -208,13 +212,13 @@ function drawGameTimer() {
   ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,0.15)';
   ctx.beginPath();
-  ctx.roundRect(w / 2 - 40, 12, 80, 32, 16);
+  ctx.roundRect(w / 2 - 40 * S, 12 * S, 80 * S, 32 * S, 16 * S);
   ctx.fill();
   ctx.fillStyle = secs <= 10 ? '#e55' : '#654';
-  ctx.font = 'bold 20px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(20, S);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(`${secs}`, w / 2, 28);
+  ctx.fillText(`${secs}`, w / 2, 28 * S);
   ctx.restore();
 }
 
@@ -223,13 +227,13 @@ function drawScore() {
   ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,0.15)';
   ctx.beginPath();
-  ctx.roundRect(w / 2 + 50, 12, 100, 32, 16);
+  ctx.roundRect(w / 2 + 50 * S, 12 * S, 100 * S, 32 * S, 16 * S);
   ctx.fill();
   ctx.fillStyle = '#654';
-  ctx.font = 'bold 18px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(18, S);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(`${score} ぴき`, w / 2 + 100, 28);
+  ctx.fillText(`${score} ぴき`, w / 2 + 100 * S, 28 * S);
   ctx.restore();
 }
 
@@ -238,16 +242,16 @@ function drawResults() {
   ctx.fillRect(0, 0, w, h);
   ctx.save();
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 38px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(38, S);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('おわり！', w / 2, h * 0.3);
 
-  ctx.font = 'bold 60px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(60, S);
   ctx.fillStyle = '#FFD700';
   ctx.fillText(`${score}`, w / 2, h * 0.44);
 
-  ctx.font = 'bold 22px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(22, S);
   ctx.fillStyle = '#fff';
   ctx.fillText('ぴき やっつけたよ！', w / 2, h * 0.54);
 
@@ -255,15 +259,15 @@ function drawResults() {
   replayBtn.y = h * 0.66;
   ctx.fillStyle = 'rgba(255,255,255,0.2)';
   ctx.beginPath();
-  ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28);
+  ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28 * S);
   ctx.fill();
   ctx.strokeStyle = 'rgba(255,255,255,0.5)';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28);
+  ctx.roundRect(replayBtn.x, replayBtn.y, replayBtn.w, replayBtn.h, 28 * S);
   ctx.stroke();
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 22px "Hiragino Sans", sans-serif';
+  ctx.font = scaledFont(22, S);
   ctx.fillText('もういっかい', w / 2, replayBtn.y + replayBtn.h / 2);
   ctx.restore();
 }
@@ -313,22 +317,22 @@ canvas.addEventListener('pointerdown', (e) => {
   for (let i = flies.length - 1; i >= 0; i--) {
     const f = flies[i];
     if (!f.alive) continue;
-    if (dist(pos.x, pos.y, f.x, f.y) < f.size * 1.5 + 20) {
+    if (dist(pos.x, pos.y, f.x, f.y) < f.size * 1.5 + 20 * S) {
       f.alive = false;
       swatter.hit = true;
       score++;
       soundManager.play('swat', 0.7);
       particles.emit(f.x, f.y, 15, {
-        speedMin: 40, speedMax: 150,
-        sizeMin: 3, sizeMax: 8,
+        speedMin: 40 * S, speedMax: 150 * S,
+        sizeMin: 3 * S, sizeMax: 8 * S,
         lifeMin: 0.3, lifeMax: 0.8,
-        gravity: 60, hue: 60, shape: 'circle',
+        gravity: 60 * S, hue: 60, shape: 'circle',
       });
       particles.emit(f.x, f.y, 5, {
-        speedMin: 20, speedMax: 80,
-        sizeMin: 4, sizeMax: 10,
+        speedMin: 20 * S, speedMax: 80 * S,
+        sizeMin: 4 * S, sizeMax: 10 * S,
         lifeMin: 0.4, lifeMax: 1.0,
-        gravity: 30, hue: 30, shape: 'star',
+        gravity: 30 * S, hue: 30, shape: 'star',
       });
       splats.push({ x: f.x, y: f.y, timer: 2.5, angle: rand(-0.3, 0.3) });
       break;
@@ -391,16 +395,16 @@ function animate(time) {
         f.restTimer -= dt;
         if (f.restTimer <= 0) {
           f.resting = false;
-          f.targetX = rand(60, w - 60);
-          f.targetY = rand(60, h - 60);
+          f.targetX = rand(60 * S, w - 60 * S);
+          f.targetY = rand(60 * S, h - 60 * S);
         }
       } else {
         const dx = f.targetX - f.x;
         const dy = f.targetY - f.y;
         const d = Math.sqrt(dx * dx + dy * dy);
-        if (d < 20) {
+        if (d < 20 * S) {
           if (Math.random() < 0.2) { f.resting = true; f.restTimer = rand(0.5, 1.5); }
-          else { f.targetX = rand(60, w - 60); f.targetY = rand(60, h - 60); }
+          else { f.targetX = rand(60 * S, w - 60 * S); f.targetY = rand(60 * S, h - 60 * S); }
         } else {
           const moveSpeed = f.speed * dt;
           f.x += (dx / d) * moveSpeed;
@@ -420,10 +424,10 @@ function animate(time) {
     while (flies.length < difficulty.maxFlies) {
       const nf = createFly();
       const side = randInt(0, 3);
-      if (side === 0) { nf.x = -20; nf.y = rand(60, h - 60); }
-      else if (side === 1) { nf.x = w + 20; nf.y = rand(60, h - 60); }
-      else if (side === 2) { nf.y = -20; nf.x = rand(60, w - 60); }
-      else { nf.y = h + 20; nf.x = rand(60, w - 60); }
+      if (side === 0) { nf.x = -20; nf.y = rand(60 * S, h - 60 * S); }
+      else if (side === 1) { nf.x = w + 20; nf.y = rand(60 * S, h - 60 * S); }
+      else if (side === 2) { nf.y = -20; nf.x = rand(60 * S, w - 60 * S); }
+      else { nf.y = h + 20; nf.x = rand(60 * S, w - 60 * S); }
       flies.push(nf);
     }
   }
