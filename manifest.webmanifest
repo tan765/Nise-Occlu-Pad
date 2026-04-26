@@ -4,7 +4,7 @@
   "description": "弱視トレーニング用のたのしいゲーム",
   "start_url": "/index.html",
   "display": "standalone",
-  "orientation": "any",
+  "orientation": "portrait",
   "background_color": "#0f0f23",
   "theme_color": "#0f0f23",
   "icons": [
