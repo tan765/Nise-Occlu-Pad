@@ -74,3 +74,41 @@ canvas {
 .sound-btn:active {
   transform: scale(0.9);
 }
+
+/* 横向き時の縦向き案内 */
+.orientation-lock {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #0f0f23;
+  z-index: 9999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+  color: #fff;
+}
+
+.orientation-lock .icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  display: inline-block;
+  animation: rotate-hint 2s ease-in-out infinite;
+}
+
+.orientation-lock .text {
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 1.6;
+}
+
+@keyframes rotate-hint {
+  0%, 100% { transform: rotate(-90deg); }
+  50% { transform: rotate(0deg); }
+}
+
+@media (orientation: landscape) {
+  .orientation-lock { display: flex; }
+  body > *:not(.orientation-lock) { visibility: hidden; }
+}
