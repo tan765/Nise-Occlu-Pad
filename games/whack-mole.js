@@ -9,7 +9,7 @@ let w, h, S = 1;
 let lastTime = 0;
 
 // タイマー
-const GAME_TIME = 90;
+const GAME_TIME = 60;
 let gameTimer = GAME_TIME;
 let gameStarted = false;
 let gameScore = 0;
@@ -234,6 +234,7 @@ function resetGame() {
 
 canvas.addEventListener('pointerdown', (e) => {
   e.preventDefault();
+  if (!e.isPrimary) return;
   soundManager.init();
   soundManager.createSounds();
   if (!soundManager._bgmStarted) { soundManager.playBgm(); soundManager._bgmStarted = true; }

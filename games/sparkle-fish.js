@@ -205,6 +205,7 @@ function drawFish(f) {
 // タッチ
 canvas.addEventListener('pointerdown', (e) => {
   e.preventDefault();
+  if (!e.isPrimary) return;
   soundManager.init();
   soundManager.createSounds();
   if (!soundManager._bgmStarted) {
