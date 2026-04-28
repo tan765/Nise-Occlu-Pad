@@ -75,6 +75,7 @@ function sparkleAt(x, y) {
 // イベント
 canvas.addEventListener('pointerdown', (e) => {
   e.preventDefault();
+  if (!e.isPrimary) return;
   soundManager.init();
   soundManager.createSounds();
   if (!soundManager._bgmStarted) {

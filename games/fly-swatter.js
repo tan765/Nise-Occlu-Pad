@@ -12,7 +12,7 @@ const splats = [];
 let score = 0;
 
 // タイマー
-const GAME_TIME = 90;
+const GAME_TIME = 60;
 let gameTimer = GAME_TIME;
 let gameStarted = false;
 let showingResults = false;
@@ -290,6 +290,7 @@ function resetGame() {
 
 canvas.addEventListener('pointerdown', (e) => {
   e.preventDefault();
+  if (!e.isPrimary) return;
   soundManager.init();
   soundManager.createSounds();
   if (!soundManager._bgmStarted) {

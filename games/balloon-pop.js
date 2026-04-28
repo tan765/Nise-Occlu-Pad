@@ -11,7 +11,7 @@ const balloons = [];
 const MAX_BALLOONS = 7;
 
 // タイマー
-const GAME_TIME = 90;
+const GAME_TIME = 60;
 let gameTimer = GAME_TIME;
 let gameStarted = false;
 let gameScore = 0;
@@ -138,6 +138,7 @@ function resetGame() {
 // タッチ
 canvas.addEventListener('pointerdown', (e) => {
   e.preventDefault();
+  if (!e.isPrimary) return;
   soundManager.init();
   soundManager.createSounds();
   if (!soundManager._bgmStarted) {
