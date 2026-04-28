@@ -93,7 +93,8 @@ function hsla(h, s, l, a) {
  * タブレットではオブジェクト・速度を比例拡大
  */
 function getScale(canvas) {
-  return Math.max(1, Math.min(3, canvas._cssWidth / 375));
+  const short = Math.min(canvas._cssWidth, canvas._cssHeight);
+  return Math.max(1, Math.min(3, short / 375));
 }
 
 /**

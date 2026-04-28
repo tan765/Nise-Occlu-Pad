@@ -25,8 +25,8 @@ const paddle = {
   hue: 200, targetX: 0,
 };
 
-let ball = null;
-let ballRespawnTimer = 0;
+const balls = [];
+const items = [];
 
 const FACES = [
   { eyes: '○○', mouth: 'smile' },
@@ -82,8 +82,16 @@ for (let i = 0; i < MAX_ALIENS; i++) {
 }
 
 function spawnBall() {
-  ball = createBreakoutBall(paddle.x, paddle.y - paddle.height / 2 - 14 * S);
+  balls.push(createBreakoutBall(paddle.x, paddle.y - paddle.height / 2 - 14 * S));
 }
+
+function createItem(x, y) {
+  return {
+    x, y, vy: 120 * S, size: 22 * S,
+    hue: 50, rotation: 0, active: true,
+  };
+}
+
 spawnBall();
 
 function drawAlien(a) {
@@ -312,6 +320,8 @@ function resetGame() {
   gameScore = 0;
   showingResults = false;
   aliens.length = 0;
+  balls.length = 0;
+  items.length = 0;
   for (let i = 0; i < MAX_ALIENS; i++) {
     const a = createAlien(); a.y = a.targetY; a.arrived = true;
     aliens.push(a);
@@ -334,20 +344,15 @@ canvas.addEventListener('pointerdown', (e) => {
 
   if (!gameStarted) gameStarted = true;
 
-  let directHit = false;
-  for (const a of aliens) {
-    if (a.hit) continue;
-    if (dist(pos.x, pos.y, a.x, a.y) < a.size * 1.1) {
-      hitAlien(a); directHit = true; break;
+  for (const b of balls) {
+    if (!b.launched) {
+      b.launched = true;
+      b.vx = rand(-120 * S, 120 * S);
+      b.vy = -b.speed;
+      normalizeBallSpeed(b);
+      soundManager.play('bounce', 0.5);
+      break;
     }
-  }
-
-  if (!directHit && ball && !ball.launched) {
-    ball.launched = true;
-    ball.vx = rand(-120 * S, 120 * S);
-    ball.vy = -ball.speed;
-    normalizeBallSpeed();
-    soundManager.play('bounce', 0.5);
   }
   paddle.targetX = Math.max(paddle.width / 2, Math.min(w - paddle.width / 2, pos.x));
 });
@@ -359,10 +364,9 @@ canvas.addEventListener('pointermove', (e) => {
   paddle.targetX = Math.max(paddle.width / 2, Math.min(w - paddle.width / 2, pos.x));
 });
 
-function normalizeBallSpeed() {
-  if (!ball) return;
-  const cs = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
-  if (cs > 0) { ball.vx = (ball.vx / cs) * ball.speed; ball.vy = (ball.vy / cs) * ball.speed; }
+function normalizeBallSpeed(b) {
+  const cs = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
+  if (cs > 0) { b.vx = (b.vx / cs) * b.speed; b.vy = (b.vy / cs) * b.speed; }
 }
 
 function hitAlien(a) {
@@ -371,6 +375,29 @@ function hitAlien(a) {
   particles.emit(a.x, a.y, 25, { speedMin: 60 * S, speedMax: 200 * S, sizeMin: 4 * S, sizeMax: 12 * S, lifeMin: 0.5, lifeMax: 1.5, gravity: 40 * S, hue: a.hue, shape: 'star' });
   particles.emit(a.x, a.y, 10, { speedMin: 30 * S, speedMax: 100 * S, sizeMin: 3 * S, sizeMax: 7 * S, lifeMin: 0.4, lifeMax: 1.0, gravity: 20 * S, hue: (a.hue + 180) % 360, shape: 'heart' });
   soundManager.play('happy', 0.7);
+  if (Math.random() < 0.25 && balls.length < 3) {
+    items.push(createItem(a.x, a.y));
+  }
+}
+
+function drawItem(item) {
+  ctx.save();
+  ctx.translate(item.x, item.y);
+  item.rotation += 0.05;
+  ctx.rotate(item.rotation);
+  const s = item.size;
+  ctx.fillStyle = '#FFD700';
+  ctx.shadowColor = '#FFD700';
+  ctx.shadowBlur = 10 * S;
+  ctx.beginPath();
+  ctx.arc(0, 0, s, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#fff';
+  ctx.font = scaledFont(16, S);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('×3', 0, 0);
+  ctx.restore();
 }
 
 function animate(time) {
@@ -416,49 +443,76 @@ function animate(time) {
 
     paddle.x += (paddle.targetX - paddle.x) * 0.25;
 
-    if (ball && ball.active) {
-      if (!ball.launched) {
-        ball.x = paddle.x;
-        ball.y = paddle.y - paddle.height / 2 - ball.radius - 2 * S;
+    for (let bi = balls.length - 1; bi >= 0; bi--) {
+      const b = balls[bi];
+      if (!b.launched) {
+        b.x = paddle.x;
+        b.y = paddle.y - paddle.height / 2 - b.radius - 2 * S;
       } else {
-        ball.x += ball.vx * dt; ball.y += ball.vy * dt;
-        ball.trail.push({ x: ball.x, y: ball.y });
-        if (ball.trail.length > 10) ball.trail.shift();
+        b.x += b.vx * dt; b.y += b.vy * dt;
+        b.trail.push({ x: b.x, y: b.y });
+        if (b.trail.length > 10) b.trail.shift();
 
-        if (ball.x < ball.radius) { ball.x = ball.radius; ball.vx = Math.abs(ball.vx); soundManager.play('bounce', 0.3); }
-        else if (ball.x > w - ball.radius) { ball.x = w - ball.radius; ball.vx = -Math.abs(ball.vx); soundManager.play('bounce', 0.3); }
-        if (ball.y < ball.radius) { ball.y = ball.radius; ball.vy = Math.abs(ball.vy); soundManager.play('bounce', 0.3); }
+        if (b.x < b.radius) { b.x = b.radius; b.vx = Math.abs(b.vx); soundManager.play('bounce', 0.3); }
+        else if (b.x > w - b.radius) { b.x = w - b.radius; b.vx = -Math.abs(b.vx); soundManager.play('bounce', 0.3); }
+        if (b.y < b.radius) { b.y = b.radius; b.vy = Math.abs(b.vy); soundManager.play('bounce', 0.3); }
 
-        if (ball.vy > 0 && ball.y + ball.radius >= paddle.y && ball.y - ball.radius <= paddle.y + paddle.height &&
-            ball.x >= paddle.x - paddle.width / 2 - ball.radius * 0.5 && ball.x <= paddle.x + paddle.width / 2 + ball.radius * 0.5) {
-          ball.y = paddle.y - ball.radius;
-          const hitPos = (ball.x - paddle.x) / (paddle.width / 2);
+        if (b.vy > 0 && b.y + b.radius >= paddle.y && b.y - b.radius <= paddle.y + paddle.height &&
+            b.x >= paddle.x - paddle.width / 2 - b.radius * 0.5 && b.x <= paddle.x + paddle.width / 2 + b.radius * 0.5) {
+          b.y = paddle.y - b.radius;
+          const hitPos = (b.x - paddle.x) / (paddle.width / 2);
           const angle = hitPos * (Math.PI / 3);
-          ball.vx = Math.sin(angle) * ball.speed;
-          ball.vy = -Math.cos(angle) * ball.speed;
-          ball.hue = (ball.hue + 60) % 360;
+          b.vx = Math.sin(angle) * b.speed;
+          b.vy = -Math.cos(angle) * b.speed;
+          b.hue = (b.hue + 60) % 360;
           soundManager.play('bounce', 0.5);
-          particles.emit(ball.x, ball.y, 5, { speedMin: 20 * S, speedMax: 60 * S, sizeMin: 2 * S, sizeMax: 5 * S, lifeMin: 0.2, lifeMax: 0.5, gravity: 30 * S, hue: ball.hue, shape: 'circle' });
+          particles.emit(b.x, b.y, 5, { speedMin: 20 * S, speedMax: 60 * S, sizeMin: 2 * S, sizeMax: 5 * S, lifeMin: 0.2, lifeMax: 0.5, gravity: 30 * S, hue: b.hue, shape: 'circle' });
         }
 
         for (const a of aliens) {
           if (a.hit) continue;
-          if (dist(ball.x, ball.y, a.x, a.y) < a.size * 0.9 + ball.radius) {
+          if (dist(b.x, b.y, a.x, a.y) < a.size * 0.9 + b.radius) {
             hitAlien(a);
-            ball.vy = -ball.vy;
-            ball.y += ball.vy > 0 ? 5 * S : -5 * S;
-            normalizeBallSpeed();
+            b.vy = -b.vy;
+            b.y += b.vy > 0 ? 5 * S : -5 * S;
+            normalizeBallSpeed(b);
             break;
           }
         }
 
-        if (ball.y > h + ball.radius * 2) { ball.active = false; ballRespawnTimer = 1.0; }
+        if (b.y > h + b.radius * 2) { balls.splice(bi, 1); continue; }
       }
-      if (ball.active) drawBall(ball);
+      drawBall(b);
     }
 
-    if (ball && !ball.active) { ballRespawnTimer -= dt; if (ballRespawnTimer <= 0) spawnBall(); }
-    if (!ball) spawnBall();
+    if (balls.length === 0) spawnBall();
+
+    // アイテム更新
+    for (let ii = items.length - 1; ii >= 0; ii--) {
+      const item = items[ii];
+      item.y += item.vy * dt;
+      if (item.y + item.size >= paddle.y &&
+          item.x >= paddle.x - paddle.width / 2 && item.x <= paddle.x + paddle.width / 2) {
+        items.splice(ii, 1);
+        soundManager.play('catch', 0.8);
+        particles.emit(paddle.x, paddle.y, 15, { speedMin: 40 * S, speedMax: 140 * S, sizeMin: 3 * S, sizeMax: 8 * S, lifeMin: 0.3, lifeMax: 0.8, gravity: 30 * S, hue: 50, shape: 'star' });
+        const src = balls.find(b => b.launched) || balls[0];
+        if (src) {
+          for (let k = 0; k < 2; k++) {
+            const nb = createBreakoutBall(src.x, src.y);
+            nb.launched = true;
+            const spreadAngle = (k === 0 ? -0.6 : 0.6);
+            nb.vx = src.vx * Math.cos(spreadAngle) - src.vy * Math.sin(spreadAngle);
+            nb.vy = src.vx * Math.sin(spreadAngle) + src.vy * Math.cos(spreadAngle);
+            normalizeBallSpeed(nb);
+            balls.push(nb);
+          }
+        }
+        continue;
+      }
+      if (item.y > h + item.size) { items.splice(ii, 1); continue; }
+      drawItem(item);
+    }
 
     drawPaddle();
   }
