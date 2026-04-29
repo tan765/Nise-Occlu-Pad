@@ -102,42 +102,56 @@ function drawApple(x, y, size) {
 }
 
 function drawBanana(x, y, size) {
+  const s = size;
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(-0.35);
 
-  // バナナ本体（三日月形：2つの弧で作る）
+  // バナナ本体（ベジェで湾曲した果肉部分を描く）
   ctx.fillStyle = '#FFD93B';
+  ctx.strokeStyle = '#C99000';
+  ctx.lineWidth = 2 * S;
+  ctx.lineJoin = 'round';
   ctx.beginPath();
-  ctx.arc(0, size * 0.2, size * 0.55, Math.PI * 1.15, Math.PI * 1.85);
-  ctx.arc(0, size * 0.12, size * 0.42, Math.PI * 1.85, Math.PI * 1.15, true);
+  // 左の先端からスタート
+  ctx.moveTo(-s * 0.45, s * 0.05);
+  // 上側の輪郭（外カーブ）→ 右先端
+  ctx.bezierCurveTo(-s * 0.45, -s * 0.45, s * 0.45, -s * 0.45, s * 0.45, s * 0.05);
+  // 右先端を少し下に
+  ctx.lineTo(s * 0.40, s * 0.20);
+  // 下側の輪郭（内カーブ）→ 左先端へ戻る
+  ctx.bezierCurveTo(s * 0.40, -s * 0.18, -s * 0.40, -s * 0.18, -s * 0.40, s * 0.20);
   ctx.closePath();
   ctx.fill();
+  ctx.stroke();
 
   // 下側の影（立体感）
   ctx.fillStyle = '#E6B800';
   ctx.beginPath();
-  ctx.arc(0, size * 0.2, size * 0.55, Math.PI * 1.5, Math.PI * 1.85);
-  ctx.arc(0, size * 0.12, size * 0.42, Math.PI * 1.85, Math.PI * 1.5, true);
+  ctx.moveTo(-s * 0.40, s * 0.20);
+  ctx.bezierCurveTo(-s * 0.40, -s * 0.18, s * 0.40, -s * 0.18, s * 0.40, s * 0.20);
+  ctx.bezierCurveTo(s * 0.30, s * 0.05, -s * 0.30, s * 0.05, -s * 0.40, s * 0.20);
   ctx.closePath();
   ctx.fill();
+
+  // ハイライト（上部）
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+  ctx.lineWidth = 3 * S;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-s * 0.30, -s * 0.10);
+  ctx.bezierCurveTo(-s * 0.25, -s * 0.32, s * 0.25, -s * 0.32, s * 0.30, -s * 0.10);
+  ctx.stroke();
 
   // 両端のヘタ
   ctx.fillStyle = '#5D4037';
   ctx.beginPath();
-  ctx.arc(-size * 0.5, size * 0.16, size * 0.045, 0, Math.PI * 2);
+  ctx.ellipse(-s * 0.45, s * 0.13, s * 0.05, s * 0.07, 0.4, 0, Math.PI * 2);
   ctx.fill();
+  ctx.fillStyle = '#3E2723';
   ctx.beginPath();
-  ctx.arc(size * 0.5, size * 0.16, size * 0.045, 0, Math.PI * 2);
+  ctx.ellipse(s * 0.45, s * 0.13, s * 0.05, s * 0.07, -0.4, 0, Math.PI * 2);
   ctx.fill();
-
-  // ハイライト
-  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-  ctx.lineWidth = 2 * S;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.arc(0, size * 0.22, size * 0.5, Math.PI * 1.25, Math.PI * 1.55);
-  ctx.stroke();
 
   ctx.restore();
 }
