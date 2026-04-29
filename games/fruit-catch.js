@@ -102,15 +102,44 @@ function drawApple(x, y, size) {
 }
 
 function drawBanana(x, y, size) {
-  ctx.fillStyle = '#FFD700';
-  ctx.lineWidth = 2;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(-0.35);
+
+  // バナナ本体（三日月形：2つの弧で作る）
+  ctx.fillStyle = '#FFD93B';
   ctx.beginPath();
-  ctx.ellipse(x, y, size * 0.2, size * 0.5, 0.3, 0, Math.PI);
+  ctx.arc(0, size * 0.2, size * 0.55, Math.PI * 1.15, Math.PI * 1.85);
+  ctx.arc(0, size * 0.12, size * 0.42, Math.PI * 1.85, Math.PI * 1.15, true);
+  ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = '#E6C200';
+
+  // 下側の影（立体感）
+  ctx.fillStyle = '#E6B800';
   ctx.beginPath();
-  ctx.ellipse(x, y, size * 0.18, size * 0.45, 0.3, 0, Math.PI);
+  ctx.arc(0, size * 0.2, size * 0.55, Math.PI * 1.5, Math.PI * 1.85);
+  ctx.arc(0, size * 0.12, size * 0.42, Math.PI * 1.85, Math.PI * 1.5, true);
+  ctx.closePath();
   ctx.fill();
+
+  // 両端のヘタ
+  ctx.fillStyle = '#5D4037';
+  ctx.beginPath();
+  ctx.arc(-size * 0.5, size * 0.16, size * 0.045, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(size * 0.5, size * 0.16, size * 0.045, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ハイライト
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 2 * S;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(0, size * 0.22, size * 0.5, Math.PI * 1.25, Math.PI * 1.55);
+  ctx.stroke();
+
+  ctx.restore();
 }
 
 function drawGrape(x, y, size) {
@@ -157,13 +186,16 @@ function drawStrawberry(x, y, size) {
   ctx.lineTo(x - size * 0.1, y + size * 0.4);
   ctx.quadraticCurveTo(x - size * 0.45, y - size * 0.1, x, y - size * 0.35);
   ctx.fill();
-  // 種
-  ctx.fillStyle = '#FFD700';
-  for (let i = 0; i < 4; i++) {
-    const sx = x + (Math.random() - 0.5) * size * 0.3;
-    const sy = y + (Math.random() - 0.5) * size * 0.3;
+  // 種（固定位置：点滅しないよう毎フレーム同じ場所に描く）
+  ctx.fillStyle = '#FFEB3B';
+  const SEED_POSITIONS = [
+    [-0.13, -0.08], [0.10, -0.05],
+    [-0.05, 0.08],  [0.14, 0.12],
+    [-0.16, 0.18],  [0.04, 0.22],
+  ];
+  for (const [dx, dy] of SEED_POSITIONS) {
     ctx.beginPath();
-    ctx.arc(sx, sy, 1.5 * S, 0, Math.PI * 2);
+    ctx.ellipse(x + dx * size, y + dy * size, 2 * S, 3 * S, 0, 0, Math.PI * 2);
     ctx.fill();
   }
   // 葉
