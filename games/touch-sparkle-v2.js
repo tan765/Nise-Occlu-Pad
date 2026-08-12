@@ -139,6 +139,7 @@
 
   GameV2.run({
     duration: null, // 時間無制限のおもちゃモード
+    bgm: 'calm',
     maxParticles: 700,
 
     onInit(g) { initBgStars(g); },

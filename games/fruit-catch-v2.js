@@ -340,6 +340,7 @@
 
   GameV2.run({
     duration: 60,
+    bgm: 'pop',
     unit: 'こ',
     unitSuffix: ' キャッチしたよ！',
     thresholds: [15, 30, 45],

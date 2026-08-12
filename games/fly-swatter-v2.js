@@ -293,6 +293,7 @@
 
   GameV2.run({
     duration: 60,
+    bgm: 'action',
     unit: 'ぴき',
     unitSuffix: ' やっつけたよ！',
     thresholds: [15, 30, 48],

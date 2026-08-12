@@ -416,6 +416,7 @@
 
   GameV2.run({
     duration: 60,
+    bgm: 'action',
     unit: 'たい',
     unitSuffix: ' たおしたよ！',
     thresholds: [8, 16, 26],

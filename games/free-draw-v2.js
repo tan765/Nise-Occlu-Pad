@@ -246,6 +246,7 @@
 
   GameV2.run({
     duration: null, // タイマーなしの自由あそび
+    bgm: 'calm',
     maxParticles: 250,
 
     onInit(g) {
