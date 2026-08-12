@@ -235,6 +235,7 @@
 
   GameV2.run({
     duration: 60,
+    bgm: 'pop',
     unit: 'ひき',
     unitSuffix: ' たたいたよ！',
     thresholds: [12, 24, 36],

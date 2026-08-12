@@ -362,6 +362,7 @@
 
   GameV2.run({
     duration: 60,
+    bgm: 'calm',
     unit: 'ひき',
     unitSuffix: ' つかまえたよ！',
     thresholds: [10, 20, 32],

@@ -159,6 +159,7 @@
 
   GameV2.run({
     duration: 60,
+    bgm: 'calm',
     unit: '',
     unitSuffix: 'レベルまで いけたよ！',
     thresholds: [4, 6, 8],

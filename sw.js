@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kirakira-v5';
+const CACHE_NAME = 'kirakira-v6';
 const ASSETS = [
   '/',
   '/index.html',
