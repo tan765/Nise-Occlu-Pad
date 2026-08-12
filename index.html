@@ -11,13 +11,22 @@
   <title>キラキラトレーニング</title>
   <link rel="stylesheet" href="css/common.css">
   <style>
+    /* common.css の overflow:hidden / touch-action:none をランチャーだけ解除
+       （カードが増えて1画面に収まらなくなったため縦スクロールを許可） */
+    html, body {
+      height: auto;
+      min-height: 100%;
+      overflow-y: auto;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
+    }
+
     body {
       background: #0f0f23;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      min-height: 100%;
+      justify-content: flex-start;
       padding: 20px;
     }
 
