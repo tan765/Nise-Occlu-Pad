@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kirakira-v3';
+const CACHE_NAME = 'kirakira-v4';
 const ASSETS = [
   '/',
   '/index.html',
@@ -24,6 +24,25 @@ const ASSETS = [
   '/games/fruit-catch.js',
   '/games/light-button.html',
   '/games/light-button.js',
+  '/js/game-core-v2.js',
+  '/games/touch-sparkle-v2.html',
+  '/games/touch-sparkle-v2.js',
+  '/games/balloon-pop-v2.html',
+  '/games/balloon-pop-v2.js',
+  '/games/free-draw-v2.html',
+  '/games/free-draw-v2.js',
+  '/games/sparkle-fish-v2.html',
+  '/games/sparkle-fish-v2.js',
+  '/games/alien-smash-v2.html',
+  '/games/alien-smash-v2.js',
+  '/games/fly-swatter-v2.html',
+  '/games/fly-swatter-v2.js',
+  '/games/whack-mole-v2.html',
+  '/games/whack-mole-v2.js',
+  '/games/fruit-catch-v2.html',
+  '/games/fruit-catch-v2.js',
+  '/games/light-button-v2.html',
+  '/games/light-button-v2.js',
   '/manifest.webmanifest',
 ];
 
